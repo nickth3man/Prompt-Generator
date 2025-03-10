@@ -11,6 +11,7 @@ from PyQt5.QtCore import QSettings
 class Settings:
     """Manages application settings and preferences."""
 
+    
     def __init__(self):
         self.settings = QSettings("PromptGenerator", "PromptGeneratorApp")
         self.default_settings = {
@@ -39,6 +40,14 @@ class Settings:
         if not self.settings.contains("theme"):
             self.reset_to_defaults()
 
+            "window_size": (1000, 700),
+            "sidebar_width": 200
+        }
+        
+        # Initialize settings if they don't exist
+        if not self.settings.contains("theme"):
+            self.reset_to_defaults()
+    
     def get(self, key):
         """Get a setting value."""
         if key in self.default_settings:
@@ -56,6 +65,13 @@ class Settings:
                 return self.settings.value(
                     key, self.default_settings[key], type=float
                 )
+            
+            if value_type == bool:
+                return self.settings.value(key, self.default_settings[key], type=bool)
+            elif value_type == int:
+                return self.settings.value(key, self.default_settings[key], type=int)
+            elif value_type == float:
+                return self.settings.value(key, self.default_settings[key], type=float)
             elif value_type == tuple:
                 # Handle tuple conversion
                 value = self.settings.value(key, self.default_settings[key])
@@ -77,12 +93,14 @@ class Settings:
                             for item in value.strip("{}").split(", ")
                         )
                     except ValueError:
+                    except:
                         return self.default_settings[key]
                 return value
             else:
                 return self.settings.value(key, self.default_settings[key])
         return None
 
+    
     def set(self, key, value):
         """Set a setting value."""
         if key in self.default_settings:
@@ -91,12 +109,14 @@ class Settings:
             return True
         return False
 
+    
     def reset_to_defaults(self):
         """Reset all settings to default values."""
         for key, value in self.default_settings.items():
             self.settings.setValue(key, value)
         self.settings.sync()
 
+    
     def export_settings(self, filepath):
         """Export settings to a JSON file."""
         settings_dict = {}
@@ -106,6 +126,10 @@ class Settings:
         with open(filepath, 'w') as f:
             json.dump(settings_dict, f, indent=4)
 
+        
+        with open(filepath, 'w') as f:
+            json.dump(settings_dict, f, indent=4)
+    
     def import_settings(self, filepath):
         """Import settings from a JSON file."""
         if not os.path.exists(filepath):
@@ -115,10 +139,16 @@ class Settings:
             with open(filepath, 'r') as f:
                 settings_dict = json.load(f)
 
+        
+        try:
+            with open(filepath, 'r') as f:
+                settings_dict = json.load(f)
+            
             for key, value in settings_dict.items():
                 if key in self.default_settings:
                     self.set(key, value)
             return True
         except Exception as e:
             print(f"Error importing settings: {e}")
+        except:
             return False
